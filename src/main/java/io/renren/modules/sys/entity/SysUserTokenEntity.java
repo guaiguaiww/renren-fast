@@ -19,7 +19,7 @@ import java.util.Date;
 
 /**
  * 系统用户Token
- *
+ * hahah
  * @author Mark sunlightcs@gmail.com
  */
 @Data
