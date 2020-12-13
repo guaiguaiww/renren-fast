@@ -15,4 +15,5 @@ public interface TencentUserService extends IService<TencentUser> {
 
     PageUtils queryPage(Map<String, Object> params);
 
+    Map<String,Object> saveTencentUser(TencentUser tencentUser);
 }

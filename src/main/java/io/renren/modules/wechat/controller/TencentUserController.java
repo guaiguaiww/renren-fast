@@ -56,8 +56,12 @@ public class TencentUserController extends AbstractController {
             logger.info("添加公众号信息");
             tencentUser.setCreateUserId(getUserId());
             //信息保存
-            tencentUserService.save(tencentUser);
-            return R.ok();
+            Map<String, Object> objectMap = tencentUserService.saveTencentUser(tencentUser);
+            if(!(Boolean) objectMap.get("flag")){
+                return R.error(500,objectMap.get("message")+"<br/>");
+            }else {
+                return R.ok();
+            }
         }catch (Exception e){
             logger.info("添加公众号信息-出错",e);
             return R.error(500,"服务器处理异常");
