@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import io.renren.common.utils.PageUtils;
 import io.renren.modules.wechat.entity.TencentUser;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,4 +17,8 @@ public interface TencentUserService extends IService<TencentUser> {
     PageUtils queryPage(Map<String, Object> params);
 
     Map<String,Object> saveTencentUser(TencentUser tencentUser);
+
+    List<TencentUser> queryAll();
+
+    Map<String,Object> updateTencentUser(TencentUser tencentUser);
 }

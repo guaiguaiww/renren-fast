@@ -61,6 +61,7 @@ public class ShiroConfig {
         filterMap.put("/swagger-resources/**", "anon");
         filterMap.put("/captcha.jpg", "anon");
         filterMap.put("/aaa.txt", "anon");
+        filterMap.put("/wechat/wechatMessage", "anon");
         //其余全部拦截
         filterMap.put("/**", "oauth2");
         shiroFilter.setFilterChainDefinitionMap(filterMap);

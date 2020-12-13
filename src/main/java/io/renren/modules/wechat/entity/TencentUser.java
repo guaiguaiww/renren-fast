@@ -44,6 +44,9 @@ public class TencentUser implements Serializable {
     private String accessToken;
     /** accessToken获取时间 */
     private Date tokenGettime;
+    /** 令牌 */
+    @NotBlank(message="令牌不能为空", groups = {AddGroup.class, UpdateGroup.class})
+    private String token;
     /** 创建时间 */
     private Date createDate;
     /** 修改时间 */

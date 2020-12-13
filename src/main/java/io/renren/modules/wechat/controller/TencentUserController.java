@@ -42,7 +42,7 @@ public class TencentUserController extends AbstractController {
             return R.ok().put("page", page);
         }catch (Exception e){
             logger.info("查询公众号列表信息-出错",e);
-            return R.error(500,"服务器处理异常");
+            return R.error("查询公众号列表信息-出错");
         }
     }
 
@@ -58,13 +58,48 @@ public class TencentUserController extends AbstractController {
             //信息保存
             Map<String, Object> objectMap = tencentUserService.saveTencentUser(tencentUser);
             if(!(Boolean) objectMap.get("flag")){
-                return R.error(500,objectMap.get("message")+"<br/>");
+                return R.error(objectMap.get("message")+"<br/>");
             }else {
                 return R.ok();
             }
         }catch (Exception e){
             logger.info("添加公众号信息-出错",e);
-            return R.error(500,"服务器处理异常");
+            return R.error("添加公众号信息-出错");
         }
+    }
+
+    @SysLog("删除公众号信息")
+    @GetMapping("/delete")
+    //@RequiresPermissions("sys:user:save")
+    public R delete(@RequestParam(value = "id",required = true) Long id){
+        try{
+            logger.info("删除公众号信息");
+            tencentUserService.removeById(id);
+        }catch (Exception e){
+            logger.info("删除公众号信息-出错",e);
+            return R.error("删除公众号信息--出错");
+        }
+        return R.ok();
+    }
+
+    @SysLog("修改公众号信息")
+    @PostMapping("/update")
+    //@RequiresPermissions("sys:user:save")
+    public R update(@RequestBody TencentUser tencentUser){
+        if(null == tencentUser.getId()){
+            logger.info("公众号编号不能为空");
+            return R.error("公众号编号不能为空");
+        }
+        try{
+            logger.info("修改公众号信息");
+            Map<String, Object> objectMap = tencentUserService.updateTencentUser(tencentUser);
+            if(!(Boolean) objectMap.get("flag")){
+                return R.error(objectMap.get("message")+"<br/>");
+            }
+        }catch (Exception e){
+            logger.error("修改公众号信息-出错",e);
+            return R.error("修改公众号信息-出错");
+        }
+        return R.ok();
     }
 }

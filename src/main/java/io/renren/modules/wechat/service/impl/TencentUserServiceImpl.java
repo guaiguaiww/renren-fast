@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -62,6 +63,54 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
             tencentUser.setTokenGettime((Date) accseeToken.get("accessTokenTime"));
             //2.调用父类保存方法
             flag = super.save(tencentUser);
+            map.put("flag",flag);
+            map.put("message",message);
+        }else{
+            map.put("flag",flag);
+            map.put("message","获取accsee_token失败");
+        }
+        return map;
+    }
+
+    @Override
+    public List<TencentUser> queryAll() {
+        return baseMapper.selectList(new QueryWrapper<>());
+    }
+
+    @Override
+    public Map<String,Object> updateTencentUser(TencentUser tencentUser) {
+        Boolean flag = false;
+        String message = null;
+        Map<String,Object> map = new HashMap<>();
+
+        //修改appid不能重复
+        TencentUser oldTencentUser = baseMapper.selectById(tencentUser.getId());
+        if(oldTencentUser != null){
+            QueryWrapper queryWrapper = new QueryWrapper();
+            //统计新的appid出现的次数
+            queryWrapper.eq("app_id",tencentUser.getAppId());
+            //如果新的appId和久的appid值相同，通过
+            queryWrapper.notIn("app_id",oldTencentUser.getAppId());
+            Integer integer = baseMapper.selectCount(queryWrapper);
+            if(integer > 0){
+                map.put("flag",flag);
+                map.put("message","app_id已存在");
+                return map;
+            }
+        }else{
+            map.put("flag",flag);
+            map.put("message","需要修改的信息已失效");
+            return map;
+        }
+        Map<String, Object> accseeToken = AccessTokenUtil.getAccseeToken(tencentUser.getAppId(), tencentUser.getAppSecret());
+        //成功获取到accseeToken
+        if(accseeToken.containsKey("status") && "success".equals(accseeToken.get("status"))){
+            String accessToken = accseeToken.get("accessToken").toString();
+
+            tencentUser.setAccessToken(accessToken);
+            tencentUser.setTokenGettime((Date) accseeToken.get("accessTokenTime"));
+            //2.调用父类保存方法
+            flag = super.updateById(tencentUser);
             map.put("flag",flag);
             map.put("message",message);
         }else{
