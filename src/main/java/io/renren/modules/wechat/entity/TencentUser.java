@@ -48,6 +48,8 @@ public class TencentUser implements Serializable {
     private Date createDate;
     /** 修改时间 */
     private Date updateDate;
+    /** 创建者ID */
+    private Long createUserId;
     /** 逻辑删除字段 */
     @TableLogic
     private Integer deleted;

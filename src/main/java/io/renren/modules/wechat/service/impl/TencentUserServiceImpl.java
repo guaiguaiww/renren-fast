@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.Map;
 
 @Service
@@ -37,7 +38,9 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
     @Override
     public boolean save(TencentUser tencentUser) {
         Boolean flag = false;
-        String accessToken = null;
+        String accessToken = "access_token";
+        tencentUser.setAccessToken("access_token");
+        tencentUser.setTokenGettime(new Date());
         //1.根据appId 和secret获取access_token信息
         if(StringUtils.isNotBlank(accessToken)){
             //2.调用父类保存方法
