@@ -2,6 +2,7 @@ package io.renren.modules.wechat.service.impl;
 
 import io.renren.common.utils.PageUtils;
 import io.renren.modules.wechat.service.TencentUserService;
+import io.renren.modules.wechat.utils.CommonWeixinProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -35,5 +36,11 @@ class TencentUserServiceImplTest {
         PageUtils queryPage = tencentUserService.queryPage(map);
         logger.info("总记录数："+queryPage.getTotalCount());
         logger.info("记录信息："+queryPage.getList());
+    }
+
+    @Test
+    public void testWechatProperties(){
+        String defaultNumber = CommonWeixinProperties.defaultNumber;
+        logger.info("微信配置文件读取：" + defaultNumber);
     }
 }
