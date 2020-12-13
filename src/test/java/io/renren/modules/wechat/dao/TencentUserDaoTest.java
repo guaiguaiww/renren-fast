@@ -27,10 +27,10 @@ public class TencentUserDaoTest {
     public void insert(){
         TencentUser user = new TencentUser();
         user.setName("hss测试公众号");
-        user.setNumber("gh_0d5f4e19ecf7");
+        user.setNumber("");
         user.setNickName("东");
-        user.setAppId("wx05a8ddbcc54e0d4f");
-        user.setAppSecret("2fafe98318eeef07c1286b4b30e2235b");
+        user.setAppId("");
+        user.setAppSecret("");
         //根据已知的appid和secret获取accessToken信息
         user.setAccessToken("accessToken");
         user.setTokenGettime(new Date());
@@ -54,7 +54,7 @@ public class TencentUserDaoTest {
     @Test
     public void countByOpenid(){
         QueryWrapper<TencentUser> wrapper = new QueryWrapper<>();
-        wrapper.eq("app_id","wx05a8ddbcc54e0d4f");
+        wrapper.eq("app_id","");
         Integer count = tencentUserDao.selectCount(wrapper);
         logger.info("count:"+count);
     }
