@@ -2,10 +2,12 @@ package io.renren.modules.job.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import io.renren.common.utils.RedisUtils;
 import io.renren.modules.wechat.entity.TencentUser;
 import io.renren.modules.wechat.service.TencentUserService;
 import io.renren.modules.wechat.utils.AccessTokenUtil;
 import io.renren.modules.wechat.utils.CommonWeixinProperties;
+import io.renren.modules.wechat.vo.WechatAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class RefreshWechatTokenTask implements ITask{
     private Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
+    private RedisUtils redisUtils;
+
+    @Autowired
     private TencentUserService tencentUserService;
 
     @Override
@@ -40,7 +45,9 @@ public class RefreshWechatTokenTask implements ITask{
             String accessToken = accseeToken.get("accessToken").toString();
             Date tokenGettime = ((Date) accseeToken.get("accessTokenTime"));
             //1.更新redis
-
+            tencentUser.setAccessToken(accessToken);
+            tencentUser.setTokenGettime(tokenGettime);
+            redisUtils.set("res_wechat_account",new WechatAccount(tencentUser),4*60);
             //2.更新数据库
             UpdateWrapper updateWrapper = new UpdateWrapper();
             updateWrapper.eq("app_id",tencentUser.getAppId());

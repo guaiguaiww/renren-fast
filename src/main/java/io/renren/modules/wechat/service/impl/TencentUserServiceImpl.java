@@ -5,14 +5,19 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.renren.common.utils.PageUtils;
 import io.renren.common.utils.Query;
+import io.renren.common.utils.RedisUtils;
 import io.renren.modules.wechat.dao.TencentUserDao;
 import io.renren.modules.wechat.entity.TencentUser;
 import io.renren.modules.wechat.service.TencentUserService;
 import io.renren.modules.wechat.utils.AccessTokenUtil;
+import io.renren.modules.wechat.utils.CommonWeixinProperties;
+import io.renren.modules.wechat.vo.WechatAccount;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +26,9 @@ import java.util.Map;
 @Service
 @Transactional
 public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, TencentUser> implements TencentUserService {
+
+    @Autowired
+    private RedisUtils redisUtils;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -63,6 +71,10 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
             tencentUser.setTokenGettime((Date) accseeToken.get("accessTokenTime"));
             //2.调用父类保存方法
             flag = super.save(tencentUser);
+            //3.如果操作的公众号信息等于默认公众号appid，将有用信息放入redis中
+            if(tencentUser.getAppId().equals(CommonWeixinProperties.component_appid)){
+                redisUtils.set("res_wechat_account",new WechatAccount(tencentUser),4*60);
+            }
             map.put("flag",flag);
             map.put("message",message);
         }else{
@@ -111,6 +123,10 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
             tencentUser.setTokenGettime((Date) accseeToken.get("accessTokenTime"));
             //2.调用父类保存方法
             flag = super.updateById(tencentUser);
+            //3.如果操作的公众号信息等于默认公众号appid，将更新后信息放入redis中
+            if(tencentUser.getAppId().equals(CommonWeixinProperties.component_appid)){
+                redisUtils.set("res_wechat_account",new WechatAccount(tencentUser),4*60);
+            }
             map.put("flag",flag);
             map.put("message",message);
         }else{
@@ -118,5 +134,22 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
             map.put("message","获取accsee_token失败");
         }
         return map;
+    }
+
+    @Override
+    public boolean removeById(Serializable id) {
+        TencentUser tencentUser = baseMapper.selectById(id);
+        if(tencentUser != null){
+            //从库中移除
+            boolean b = super.removeById(id);
+            if(b){
+                //如果操作的公众号信息等于默认公众号appid，移除缓存信息
+                if(tencentUser.getAppId().equals(CommonWeixinProperties.component_appid)){
+                    redisUtils.delete("res_wechat_account");
+                    return b;
+                }
+            }
+        }
+        return false;
     }
 }
