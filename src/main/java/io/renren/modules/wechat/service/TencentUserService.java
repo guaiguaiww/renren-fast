@@ -23,4 +23,6 @@ public interface TencentUserService extends IService<TencentUser> {
     Map<String,Object> updateTencentUser(TencentUser tencentUser);
 
     void deleteBatch(Long[] ids);
+    /** 获取jssdk配置信息 */
+    Map<String,Object> getJsSdkConfig(String url);
 }

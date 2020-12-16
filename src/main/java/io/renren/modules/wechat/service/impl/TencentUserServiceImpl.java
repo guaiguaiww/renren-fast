@@ -1,5 +1,7 @@
 package io.renren.modules.wechat.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -12,7 +14,10 @@ import io.renren.modules.wechat.service.TencentUserService;
 import io.renren.modules.wechat.utils.AccessTokenUtil;
 import io.renren.modules.wechat.utils.CommonWeixinProperties;
 import io.renren.modules.wechat.vo.WechatAccount;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +28,8 @@ import java.util.*;
 @Service
 @Transactional
 public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, TencentUser> implements TencentUserService {
+
+    Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private RedisUtils redisUtils;
@@ -125,6 +132,43 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
     @Override
     public void deleteBatch(Long[] ids) {
         super.removeByIds(Arrays.asList(ids));
+    }
+
+    @Override
+    public Map<String, Object> getJsSdkConfig(String url) {
+        Map<String,Object> map = new HashMap<>();
+        //先由redis获取
+        String apiTicket = null;
+        String res_wechat_account = redisUtils.get("res_wechat_account");
+        if(res_wechat_account != null && "".equals(res_wechat_account)){
+            WechatAccount wechatAccount = JSONObject.parseObject(res_wechat_account,WechatAccount.class);
+            apiTicket = wechatAccount.getJsApiTicket();
+        }else {//再由数据库获取
+            String componentAppid = CommonWeixinProperties.component_appid;
+            QueryWrapper wrapper = new QueryWrapper();
+            wrapper.eq("app_id",componentAppid);
+            TencentUser tencentUser = baseMapper.selectOne(wrapper);
+            apiTicket = tencentUser.getJsApiTicket();
+        }
+        if(apiTicket == null){
+            map.put("flag",false);
+            return map;
+        }
+        String noncestr = UUID.randomUUID().toString().replace("-", "").substring(0, 16);//随机字符串
+        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);//时间戳
+        //5、将参数排序并拼接字符串
+        String str = "jsapi_ticket="+apiTicket+"&noncestr="+noncestr+"&timestamp="+timestamp+"&url="+url;
+        String signature =DigestUtils.shaHex(str);
+        logger.info("jsapi_ticket:"+apiTicket);
+        logger.info("noncestr:"+noncestr);
+        logger.info("timestamp:"+timestamp);
+        logger.info("参数："+str+"\n签名："+signature);
+        map.put("flag",true);
+        map.put("appId",CommonWeixinProperties.component_appid);
+        map.put("timestamp",timestamp);
+        map.put("nonceStr",noncestr);
+        map.put("signature",signature);
+        return map;
     }
 
     @Override
