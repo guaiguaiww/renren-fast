@@ -44,6 +44,10 @@ public class TencentUser implements Serializable {
     private String accessToken;
     /** accessToken获取时间 */
     private Date tokenGettime;
+    /** jsApiticket */
+    private String jsApiTicket;
+    /** jsApiticket获取时间 */
+    private Date jsApiTicketTime;
     /** 令牌 */
     @NotBlank(message="令牌不能为空", groups = {AddGroup.class, UpdateGroup.class})
     private String token;

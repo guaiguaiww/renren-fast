@@ -16,8 +16,10 @@ import java.util.Map;
 public class AccessTokenUtil {
 
     private final static Logger logger = LoggerFactory.getLogger(AccessTokenUtil.class);
-
+    //获取AccessToken
     private final static String requestUrl="https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET";
+    //获取jsApiTicket
+    private static final String jsapi_ticket_url="https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=ACCESS_TOKEN&type=jsapi";
 
     public static Map<String,Object> getAccseeToken(String appid, String appsecret){
         Map<String,Object> data = new HashMap<String,Object>();
@@ -33,7 +35,15 @@ public class AccessTokenUtil {
                     String accessToken=jsonObj.getString("access_token");
                     data.put("accessToken", accessToken);
                     data.put("accessTokenTime", new Date());
-
+                    //获取jsapi(JS-SDK用)
+                    String jsApiUrl = jsapi_ticket_url.replace("ACCESS_TOKEN", accessToken);
+                    JSONObject jsonObjJsApi = WeiXinHttpUtil.sendGet(jsApiUrl);
+                    logger.info("AccseeToken response jsonObjJsApi={}.", new Object[]{jsonObjJsApi});
+                    if(jsonObjJsApi != null){
+                        String jsApiTicket = jsonObjJsApi.getString("ticket");
+                        data.put("jsApiTicket", jsApiTicket);
+                        data.put("jsApiTicketTime", new Date());
+                    }
                     data.put("status", "success");
                 }else{//请求失败
                     if(jsonObj.containsKey("errcode")){

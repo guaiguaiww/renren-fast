@@ -25,6 +25,10 @@ public class WechatAccount implements Serializable {
     private String accessToken;
     /** accessToken获取时间 */
     private Date tokenGettime;
+    /** jsApiticket */
+    private String jsApiTicket;
+    /** jsApiticket获取时间 */
+    private Date jsApiTicketTime;
     /** 令牌 */
     private String token;
 
@@ -47,8 +51,14 @@ public class WechatAccount implements Serializable {
         if(StringUtils.isNotBlank(tencentUser.getAccessToken())){
             this.accessToken = tencentUser.getAccessToken();
         }
-        if(null != tokenGettime){
+        if(null != tencentUser.getTokenGettime()){
             this.tokenGettime = tencentUser.getTokenGettime();
+        }
+        if(StringUtils.isNotBlank(tencentUser.getJsApiTicket())){
+            this.jsApiTicket = tencentUser.getJsApiTicket();
+        }
+        if(null != tencentUser.getJsApiTicketTime()){
+            this.jsApiTicketTime = tencentUser.getJsApiTicketTime();
         }
         if(StringUtils.isNotBlank(tencentUser.getToken())){
             this.token = tencentUser.getToken();

@@ -62,13 +62,8 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
             map.put("message",message);
             return map;
         }
-        Map<String, Object> accseeToken = AccessTokenUtil.getAccseeToken(tencentUser.getAppId(), tencentUser.getAppSecret());
-        //成功获取到accseeToken
-        if(accseeToken.containsKey("status") && "success".equals(accseeToken.get("status"))){
-            String accessToken = accseeToken.get("accessToken").toString();
-
-            tencentUser.setAccessToken(accessToken);
-            tencentUser.setTokenGettime((Date) accseeToken.get("accessTokenTime"));
+        //获取公众号令牌信息
+        if(giveWechatToken(tencentUser)){
             //2.调用父类保存方法
             flag = super.save(tencentUser);
             //3.如果操作的公众号信息等于默认公众号appid，将有用信息放入redis中
@@ -76,7 +71,6 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
                 redisUtils.set("res_wechat_account",new WechatAccount(tencentUser),4*60);
             }
             map.put("flag",flag);
-            map.put("message",message);
         }else{
             map.put("flag",flag);
             map.put("message","获取accsee_token失败");
@@ -114,13 +108,9 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
             map.put("message","需要修改的信息已失效");
             return map;
         }
-        Map<String, Object> accseeToken = AccessTokenUtil.getAccseeToken(tencentUser.getAppId(), tencentUser.getAppSecret());
-        //成功获取到accseeToken
-        if(accseeToken.containsKey("status") && "success".equals(accseeToken.get("status"))){
-            String accessToken = accseeToken.get("accessToken").toString();
 
-            tencentUser.setAccessToken(accessToken);
-            tencentUser.setTokenGettime((Date) accseeToken.get("accessTokenTime"));
+        //成功获取到accseeToken
+        if(giveWechatToken(tencentUser)){
             //2.调用父类保存方法
             flag = super.updateById(tencentUser);
             //3.如果操作的公众号信息等于默认公众号appid，将更新后信息放入redis中
@@ -128,7 +118,6 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
                 redisUtils.set("res_wechat_account",new WechatAccount(tencentUser),4*60);
             }
             map.put("flag",flag);
-            map.put("message",message);
         }else{
             map.put("flag",flag);
             map.put("message","获取accsee_token失败");
@@ -151,5 +140,26 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
             }
         }
         return false;
+    }
+
+    private Boolean giveWechatToken(TencentUser tencentUser){
+        Boolean flag = false;
+        Map<String, Object> accseeToken = AccessTokenUtil.getAccseeToken(tencentUser.getAppId(), tencentUser.getAppSecret());
+        //成功获取到accseeToken
+        if(accseeToken.containsKey("status") && "success".equals(accseeToken.get("status"))) {
+            String accessToken = accseeToken.get("accessToken").toString();
+
+            tencentUser.setAccessToken(accessToken);
+            tencentUser.setTokenGettime((Date) accseeToken.get("accessTokenTime"));
+
+            if (accseeToken.containsKey("jsApiTicket")) {
+                String jsApiTicket = accseeToken.get("jsApiTicket").toString();
+                //赋入JsApiTicket
+                tencentUser.setJsApiTicket(jsApiTicket);
+                tencentUser.setJsApiTicketTime((Date) accseeToken.get("jsApiTicketTime"));
+                flag = true;
+            }
+        }
+        return flag;
     }
 }
