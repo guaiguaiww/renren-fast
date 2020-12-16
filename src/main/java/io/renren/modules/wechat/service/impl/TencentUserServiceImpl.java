@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Transactional
@@ -73,7 +70,7 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
             map.put("flag",flag);
         }else{
             map.put("flag",flag);
-            map.put("message","获取accsee_token失败");
+            map.put("message","获取accsee_token失败。请检查appId和appSecret");
         }
         return map;
     }
@@ -120,9 +117,14 @@ public class TencentUserServiceImpl  extends ServiceImpl<TencentUserDao, Tencent
             map.put("flag",flag);
         }else{
             map.put("flag",flag);
-            map.put("message","获取accsee_token失败");
+            map.put("message","获取accsee_token失败。请检查appId和appSecret");
         }
         return map;
+    }
+
+    @Override
+    public void deleteBatch(Long[] ids) {
+        super.removeByIds(Arrays.asList(ids));
     }
 
     @Override

@@ -21,4 +21,6 @@ public interface TencentUserService extends IService<TencentUser> {
     List<TencentUser> queryAll();
 
     Map<String,Object> updateTencentUser(TencentUser tencentUser);
+
+    void deleteBatch(Long[] ids);
 }

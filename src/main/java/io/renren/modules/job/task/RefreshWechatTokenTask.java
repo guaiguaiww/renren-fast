@@ -38,30 +38,32 @@ public class RefreshWechatTokenTask implements ITask{
         QueryWrapper wrapper = new QueryWrapper();
         wrapper.eq("app_id",CommonWeixinProperties.component_appid);
         TencentUser tencentUser = tencentUserService.getOne(wrapper);
-        //根据appid和appsecret获取并更新token信息
-        Map<String, Object> accseeToken = AccessTokenUtil.getAccseeToken(tencentUser.getAppId(), tencentUser.getAppSecret());
-        if(accseeToken.containsKey("status") && "success".equals(accseeToken.get("status"))){
-            String accessToken = accseeToken.get("accessToken").toString();
-            Date tokenGettime = ((Date) accseeToken.get("accessTokenTime"));
-            //1.更新redis
-            tencentUser.setAccessToken(accessToken);
-            tencentUser.setTokenGettime(tokenGettime);
-            if (accseeToken.containsKey("jsApiTicket")) {
-                String jsApiTicket = accseeToken.get("jsApiTicket").toString();
-                Date jsApiTicketTime = (Date) accseeToken.get("jsApiTicketTime");
-                //赋入JsApiTicket
-                tencentUser.setJsApiTicket(jsApiTicket);
-                tencentUser.setJsApiTicketTime(jsApiTicketTime);
+        if(null != tencentUser){
+            //根据appid和appsecret获取并更新token信息
+            Map<String, Object> accseeToken = AccessTokenUtil.getAccseeToken(tencentUser.getAppId(), tencentUser.getAppSecret());
+            if(accseeToken.containsKey("status") && "success".equals(accseeToken.get("status"))){
+                String accessToken = accseeToken.get("accessToken").toString();
+                Date tokenGettime = ((Date) accseeToken.get("accessTokenTime"));
+                //1.更新redis
+                tencentUser.setAccessToken(accessToken);
+                tencentUser.setTokenGettime(tokenGettime);
+                if (accseeToken.containsKey("jsApiTicket")) {
+                    String jsApiTicket = accseeToken.get("jsApiTicket").toString();
+                    Date jsApiTicketTime = (Date) accseeToken.get("jsApiTicketTime");
+                    //赋入JsApiTicket
+                    tencentUser.setJsApiTicket(jsApiTicket);
+                    tencentUser.setJsApiTicketTime(jsApiTicketTime);
+                }
+                redisUtils.set("res_wechat_account",new WechatAccount(tencentUser),4*60);
+                //2.更新数据库
+                UpdateWrapper updateWrapper = new UpdateWrapper();
+                updateWrapper.eq("app_id",tencentUser.getAppId());
+                updateWrapper.set("access_token",accessToken);
+                updateWrapper.set("token_gettime",tokenGettime);
+                updateWrapper.set("js_api_ticket",tencentUser.getJsApiTicket());
+                updateWrapper.set("js_api_ticket_time",tencentUser.getJsApiTicketTime());
+                tencentUserService.update(updateWrapper);
             }
-            redisUtils.set("res_wechat_account",new WechatAccount(tencentUser),4*60);
-            //2.更新数据库
-            UpdateWrapper updateWrapper = new UpdateWrapper();
-            updateWrapper.eq("app_id",tencentUser.getAppId());
-            updateWrapper.set("access_token",accessToken);
-            updateWrapper.set("token_gettime",tokenGettime);
-            updateWrapper.set("js_api_ticket",tencentUser.getJsApiTicket());
-            updateWrapper.set("js_api_ticket_time",tencentUser.getJsApiTicketTime());
-            tencentUserService.update(updateWrapper);
         }
         logger.info("成功刷新公众号token信息");
     }

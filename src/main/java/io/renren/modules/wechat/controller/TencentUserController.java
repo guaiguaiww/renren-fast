@@ -34,7 +34,6 @@ public class TencentUserController extends AbstractController {
      * 公众号信息列表
      */
     @GetMapping("/list")
-    //@RequiresPermissions("sys:user:list")
     public R list(@RequestParam Map<String, Object> params){
         try{
             logger.info("查询公众号列表信息");
@@ -48,7 +47,7 @@ public class TencentUserController extends AbstractController {
 
     @SysLog("保存公众号信息")
     @PostMapping("/save")
-    //@RequiresPermissions("sys:user:save")
+    @RequiresPermissions("wechat:tencentUser:save")
     public R save(@RequestBody TencentUser tencentUser){
         //字段效验
         ValidatorUtils.validateEntity(tencentUser, AddGroup.class);
@@ -58,7 +57,7 @@ public class TencentUserController extends AbstractController {
             //信息保存
             Map<String, Object> objectMap = tencentUserService.saveTencentUser(tencentUser);
             if(!(Boolean) objectMap.get("flag")){
-                return R.error(objectMap.get("message")+"<br/>");
+                return R.error(objectMap.get("message").toString());
             }else {
                 return R.ok();
             }
@@ -69,12 +68,12 @@ public class TencentUserController extends AbstractController {
     }
 
     @SysLog("删除公众号信息")
-    @GetMapping("/delete")
-    //@RequiresPermissions("sys:user:save")
-    public R delete(@RequestParam(value = "id",required = true) Long id){
+    @PostMapping("/delete")
+    @RequiresPermissions("wechat:tencentUser:delete")
+    public R delete(@RequestBody Long[] ids){
         try{
             logger.info("删除公众号信息");
-            tencentUserService.removeById(id);
+            tencentUserService.deleteBatch(ids);
         }catch (Exception e){
             logger.info("删除公众号信息-出错",e);
             return R.error("删除公众号信息--出错");
@@ -84,7 +83,7 @@ public class TencentUserController extends AbstractController {
 
     @SysLog("修改公众号信息")
     @PostMapping("/update")
-    //@RequiresPermissions("sys:user:save")
+    @RequiresPermissions("sys:user:update")
     public R update(@RequestBody TencentUser tencentUser){
         if(null == tencentUser.getId()){
             logger.info("公众号编号不能为空");
@@ -94,12 +93,28 @@ public class TencentUserController extends AbstractController {
             logger.info("修改公众号信息");
             Map<String, Object> objectMap = tencentUserService.updateTencentUser(tencentUser);
             if(!(Boolean) objectMap.get("flag")){
-                return R.error(objectMap.get("message")+"<br/>");
+                return R.error(objectMap.get("message").toString());
             }
         }catch (Exception e){
             logger.error("修改公众号信息-出错",e);
             return R.error("修改公众号信息-出错");
         }
         return R.ok();
+    }
+
+    @GetMapping(value = "/info")
+    public R info(@RequestParam(value = "id",required = true) Long id){
+        if(null == id || id <= 0){
+            logger.error("参数异常");
+            return R.error("参数异常");
+        }
+        try{
+            logger.info("查看公众号信息");
+            TencentUser tencentUser = tencentUserService.getById(id);
+            return R.ok().put("tencentUser",tencentUser);
+        }catch (Exception e){
+            logger.error("查看公众号信息-出错",e);
+            return R.error("查看公众号信息-出错");
+        }
     }
 }
